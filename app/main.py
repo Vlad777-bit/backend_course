@@ -1,21 +1,20 @@
-import uvicorn # type: ignore
+import uvicorn
 
-from fastapi import FastAPI # type: ignore
-from app.routers import calculator, expression
+from fastapi import FastAPI
+from app.routers import contact
 
-app = FastAPI(title="Калькулятор FastAPI")
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title="Contact Service",
+        version="1.0.0",
+        description="Сервис для сбора обращений абонентов"
+    )
 
-# Подключаем роутеры с префиксами и тегами для документации
-app.include_router(
-    calculator.router,
-    prefix="/calculator",
-    tags=["Calculator"],
-)
-app.include_router(
-    expression.router,
-    prefix="/expression",
-    tags=["Expression"]
-)
+    app.include_router(contact.router, prefix="/contact", tags=["Contact"])
+
+    return app
+
+app = create_app()
 
 if __name__ == '__main__':
     uvicorn.run(
