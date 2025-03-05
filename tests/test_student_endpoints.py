@@ -91,8 +91,8 @@ def test_unauthorized_access():
 
 def test_import_csv(auth_token, tmp_path):
     """
-    Тестируем эндпойнт /student/import_csv (POST).
-    Передаём путь к временному CSV, проверяем 200 и корректную обработку.
+    Тестируем эндпойнт /student/import_csv_bg (POST).
+    Проверяем, что он возвращает код 200 и корректное сообщение.
     """
     csv_data = """Фамилия,Имя,Факультет,Курс,Оценка
 Иванов,Иван,Факультет Математики,Математика-1,45
@@ -103,9 +103,11 @@ def test_import_csv(auth_token, tmp_path):
     csv_file.write_text(csv_data, encoding="utf-8")
 
     headers = {"Authorization": f"Bearer {auth_token}"}
-    r = client.post("/student/import_csv?csv_path=" + str(csv_file), headers=headers)
+    r = client.post(f"/student/import_csv_bg?csv_path={csv_file}", headers=headers)
     assert r.status_code == 200, r.text
-    assert r.json()["message"] == "CSV imported successfully"
+
+    msg = r.json()["message"]
+    assert "запущен в фоне" in msg
 
 def test_create_student(auth_token):
     """

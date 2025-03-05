@@ -8,7 +8,6 @@ __pycache__
 htmlcov
 dist
 site
-./students.db
 .coverage*
 coverage.xml
 .netlify
@@ -30,3 +29,5 @@ archive.zip
 
 # macOS
 .DS_Store
+
+students.db
