@@ -8,6 +8,7 @@ __pycache__
 htmlcov
 dist
 site
+./students.db
 .coverage*
 coverage.xml
 .netlify

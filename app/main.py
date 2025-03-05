@@ -1,18 +1,18 @@
 import uvicorn
 
 from fastapi import FastAPI
-from app.routers.student import router as student_router
 from app.models.student_models import Base
 from app.utils.db import engine
+from app.routers import student
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="My App", version="1.0.0")
+    app = FastAPI(title="Student Service", version="1.0.0")
 
-    # 1. Создаём таблицы на основе наших моделей
+    # Создаём таблицу 'students' в БД, если её нет
     Base.metadata.create_all(bind=engine)
 
-    # 2. Подключаем роутеры
-    app.include_router(student_router, prefix="/student", tags=["Student"])
+    # Подключаем роутер /student
+    app.include_router(student.router, prefix="/student", tags=["Student"])
 
     return app
 
