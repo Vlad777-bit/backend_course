@@ -2,11 +2,13 @@
 .ipynb_checkpoints
 .mypy_cache
 .vscode
+/app/storage
 __pycache__
 .pytest_cache
 htmlcov
 dist
 site
+./students.db
 .coverage*
 coverage.xml
 .netlify
