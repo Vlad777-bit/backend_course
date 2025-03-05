@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
+from pydantic import BaseModel, Field
 
 from app.repository.user_repository import UserRepository
 from app.utils.db import get_db
-from app.utils.token_manager import create_token_for_user, get_user_id_by_token, delete_token
+from app.utils.token_manager import create_token_for_user, delete_token
 from app.schemas.auth_schemas import UserRegister, UserLogin, UserOut, TokenOut
 
 router = APIRouter()

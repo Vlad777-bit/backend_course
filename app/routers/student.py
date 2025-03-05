@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
+from typing import List
+import json
 
 from app.repository.student_repository import StudentRepository
 from app.utils.db import get_db
 from app.utils.dependencies import get_current_user
+from app.tasks.student_tasks import import_csv_task, delete_students_task
+from app.utils.redis_client import r
 
 router = APIRouter()
 
@@ -21,6 +25,32 @@ def import_students(
     repo.insert_students_from_csv(csv_path)
     return {"message": "CSV imported successfully"}
 
+@router.post("/import_csv_bg")
+def import_csv_in_background(
+    csv_path: str = Query(..., description="Путь к CSV-файлу"),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    current_user=Depends(get_current_user),  # только авторизованный
+):
+    """
+    Запускает импорт CSV как фоновую задачу.
+    Пример вызова: POST /student/import_csv_bg?csv_path=./students.csv
+    """
+    background_tasks.add_task(import_csv_task, csv_path)
+    return {"message": f"Импорт для файла '{csv_path}' запущен в фоне."}
+
+@router.delete("/delete_bg")
+def delete_students_in_background(
+    ids: List[int] = Query(..., description="Список ID для удаления"),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    current_user=Depends(get_current_user),
+):
+    """
+    Удаление записей (студентов) с переданными ID в фоне.
+    Пример вызова: DELETE /student/delete_bg?ids=1&ids=2&ids=3
+    """
+    background_tasks.add_task(delete_students_task, ids)
+    return {"message": f"Задача по удалению студентов с id {ids} запущена в фоне."}
+
 @router.get("/by_faculty")
 def get_students_by_faculty(
     faculty: str,
@@ -30,9 +60,31 @@ def get_students_by_faculty(
     """
     Получение списка студентов по названию факультета.
     Только для авторизованных пользователей.
+    Кэшируем результат на 60 секунд.
+    Преобразуем объекты Student в список словарей, чтобы json.dumps не ругался.
     """
+    cache_key = f"by_faculty:{faculty}"
+    cached = r.get(cache_key)
+    if cached:
+        print("[REDIS] HIT")
+        return json.loads(cached)
+
     repo = StudentRepository(db)
-    return repo.get_students_by_faculty(faculty)
+    students = repo.get_students_by_faculty(faculty)
+    result = [
+        {
+            "id": s.id,
+            "name": s.name,
+            "faculty": s.faculty,
+            "course": s.course,
+            "grade": s.grade
+        }
+        for s in students
+    ]
+
+    r.setex(cache_key, 60, json.dumps(result, ensure_ascii=False))
+    print("[REDIS] MISS - saved to cache")
+    return result
 
 @router.get("/unique_courses")
 def get_unique_courses(

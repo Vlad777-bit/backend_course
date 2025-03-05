@@ -1,5 +1,3 @@
-# app/repository/student_repository.py
-
 import csv
 from typing import List, Optional
 from sqlalchemy.orm import Session
@@ -15,14 +13,12 @@ class StudentRepository:
     # ---------------------------------------------------------------------
     def insert_students_from_csv(self, csv_path: str) -> None:
         """
-        Читает CSV-файл со столбцами: Фамилия,Имя,Факультет,Курс,Оценка
-        и сохраняет данные в таблицу 'students'.
-        Пример: собираем name из "Фамилия" + "Имя".
+        Считывает CSV (Фамилия,Имя,Факультет,Курс,Оценка) и добавляет записи в таблицу 'students'.
+        Пример: собираем name из "Фамилия Имя".
         """
         with open(csv_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter=",")
             for row in reader:
-                # Собираем полное имя
                 full_name = f"{row['Фамилия']} {row['Имя']}"
                 student = Student(
                     name=full_name,
@@ -140,3 +136,10 @@ class StudentRepository:
         self.session.delete(student)
         self.session.commit()
         return True
+
+    def delete_students_by_ids(self, ids: list[int]) -> None:
+        """
+        Удаляет студентов, у которых id входит в список ids.
+        """
+        self.session.query(Student).filter(Student.id.in_(ids)).delete(synchronize_session=False)
+        self.session.commit()
