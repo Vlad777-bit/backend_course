@@ -2,16 +2,16 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class StudentCreate(BaseModel):
-    name: str = Field(..., example="Иван Иванов")
-    faculty: str = Field(..., example="Факультет Математики")
-    course: str = Field(..., example="Математика-1")
-    grade: float = Field(..., example=45.0)
+    name: str = Field(..., json_schema_extra="Иван Иванов")
+    faculty: str = Field(..., json_schema_extra="Факультет Математики")
+    course: str = Field(..., json_schema_extra="Математика-1")
+    grade: float = Field(..., json_schema_extra=45.0)
 
 class StudentUpdate(BaseModel):
-    name: Optional[str] = Field(None, example="Пётр Петров")
-    faculty: Optional[str] = Field(None, example="Факультет Физики")
-    course: Optional[str] = Field(None, example="Физика-2")
-    grade: Optional[float] = Field(None, example=30.0)
+    name: Optional[str] = Field(None, json_schema_extra="Пётр Петров")
+    faculty: Optional[str] = Field(None, json_schema_extra="Факультет Физики")
+    course: Optional[str] = Field(None, json_schema_extra="Физика-2")
+    grade: Optional[float] = Field(None, json_schema_extra=30.0)
 
 class StudentOut(BaseModel):
     id: int

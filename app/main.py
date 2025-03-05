@@ -1,17 +1,20 @@
 import uvicorn
 
 from fastapi import FastAPI
-from app.models.student_models import Base
+from app.models.student_models import Base as StudentBase
+from app.models.user_models import Base as UserBase
 from app.utils.db import engine
-from app.routers import student
+from app.routers import student, auth
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Student Service", version="1.0.0")
+    app = FastAPI(title="My Service with Auth")
 
-    # Создаём таблицу 'students' в БД, если её нет
-    Base.metadata.create_all(bind=engine)
+    # Создаём таблицы
+    StudentBase.metadata.create_all(bind=engine)
+    UserBase.metadata.create_all(bind=engine)
 
-    # Подключаем роутер /student
+    # Подключаем роутеры
+    app.include_router(auth.router, prefix="/auth", tags=["Auth"])
     app.include_router(student.router, prefix="/student", tags=["Student"])
 
     return app
